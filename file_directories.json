@@ -1,0 +1,56 @@
+{
+    "1999-2000": {
+        "Demographics": ["DEMO.xpt"],
+        "Examination": ["BPX.xpt", "BMX.xpt"],
+        "Laboratory": ["LAB25.xpt", "LAB18.xpt", "LAB13.xpt", "LAB18.xpt", "LAB10.xpt"],
+        "Questionnaire": ["PAQ.xpt", "DIQ.xpt", "MCQ.xpt"]
+    },
+    "2001-2002": {
+        "Demographics": ["DEMO_B.xpt"],
+        "Examination": ["BPX_B.xpt", "BMX_B.xpt"],
+        "Laboratory": ["L25_B.xpt", "L10_B.xpt", "L10_2_B.xpt", "L13_B.xpt", "L40_B.xpt", "L40_2_B.xpt"],
+        "Questionnaire": ["PAQ_B.xpt", "DIQ_B.xpt", "MCQ_B.xpt"]
+    },
+    "2003-2004": {
+        "Demographics": ["DEMO_C.xpt"],
+        "Examination": ["BPX_C.xpt", "BMX_C.xpt"],
+        "Laboratory": ["L25_C.xpt", "L10_C.xpt", "L13_C.xpt", "L40_C.xpt"],
+        "Questionnaire": ["PAQ_C.xpt", "DIQ_C.xpt", "MCQ_C.xpt"]
+    },
+    "2005-2006": {
+        "Demographics": ["DEMO_D.xpt"],
+        "Examination": ["BPX_D.xpt", "BMX_D.xpt"],
+        "Laboratory": ["BIOPRO_D.xpt", "CBC_D.xpt", "GHB_D.xpt", "HDL_D.xpt", "TCHOL_D.xpt"],
+        "Questionnaire": ["PAQ_D.xpt", "DIQ_D.xpt", "MCQ_D.xpt"]
+    },
+    "2007-2008": {
+        "Demographics": ["DEMO_E.xpt"],
+        "Examination": ["BPX_E.xpt", "BMX_E.xpt"],
+        "Laboratory": ["BIOPRO_E.xpt", "CBC_E.xpt", "GHB_E.xpt", "HDL_E.xpt", "TCHOL_E.xpt"],
+        "Questionnaire": ["PAQ_E.xpt", "DIQ_E.xpt", "MCQ_E.xpt"]
+    },
+    "2009-2010": {
+        "Demographics": ["DEMO_F.xpt"],
+        "Examination": ["BPX_F.xpt", "BMX_F.xpt"],
+        "Laboratory": ["BIOPRO_F.xpt", "CBC_F.xpt", "GHB_F.xpt", "HDL_F.xpt", "TCHOL_F.xpt"],
+        "Questionnaire": ["PAQ_F.xpt", "DIQ_F.xpt", "MCQ_F.xpt"]
+    },
+    "2011-2012": {
+        "Demographics": ["DEMO_G.xpt"],
+        "Examination": ["BPX_G.xpt", "BMX_G.xpt"],
+        "Laboratory": ["BIOPRO_G.xpt", "CBC_G.xpt", "GHB_G.xpt", "HDL_G.xpt", "TCHOL_G.xpt"],
+        "Questionnaire": ["PAQ_G.xpt", "DIQ_G.xpt", "MCQ_G.xpt"]
+    },
+    "2013-2014": {
+        "Demographics": ["DEMO_H.xpt"],
+        "Examination": ["BPX_H.xpt", "BMX_H.xpt"],
+        "Laboratory": ["BIOPRO_H.xpt", "CBC_H.xpt", "GHB_H.xpt", "HDL_H.xpt", "TCHOL_H.xpt"],
+        "Questionnaire": ["PAQ_H.xpt", "DIQ_H.xpt", "MCQ_H.xpt"]
+    },
+    "2015-2016": {
+        "Demographics": ["DEMO_I.xpt"],
+        "Examination": ["BPX_I.xpt", "BMX_I.xpt"],
+        "Laboratory": ["BIOPRO_I.xpt", "CBC_I.xpt", "GHB_I.xpt", "HDL_I.xpt", "TCHOL_I.xpt"],
+        "Questionnaire": ["PAQ_I.xpt", "DIQ_I.xpt", "MCQ_I.xpt"]
+    }
+}
