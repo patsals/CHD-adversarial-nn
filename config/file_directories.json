@@ -52,5 +52,11 @@
         "Examination": ["BPX_I.xpt", "BMX_I.xpt"],
         "Laboratory": ["BIOPRO_I.xpt", "CBC_I.xpt", "GHB_I.xpt", "HDL_I.xpt", "TCHOL_I.xpt"],
         "Questionnaire": ["PAQ_I.xpt", "DIQ_I.xpt", "MCQ_I.xpt"]
+    },
+    "2017-2018": {
+        "Demographics": ["DEMO_J.xpt"],
+        "Examination": ["BPX_J.xpt", "BMX_J.xpt"],
+        "Laboratory": ["BIOPRO_J.xpt", "CBC_J.xpt", "GHB_J.xpt", "HDL_J.xpt", "TCHOL_J.xpt"],
+        "Questionnaire": ["PAQ_J.xpt", "DIQ_J.xpt", "MCQ_J.xpt"]
     }
 }

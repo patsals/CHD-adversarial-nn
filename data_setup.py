@@ -18,8 +18,7 @@ data_attributes_file_path = os.path.join(config_directory, data_attributes_file_
 attribute_name_map_file_path = os.path.join(config_directory, attribute_name_map_file_name)
 dataset_save_file_path = os.path.join(data_directory, dataset_save_file_name)
 
-start_years = [1999, 2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015]
-
+start_years = [1999, 2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015, 2017]
 
 def download_specific_files(url, output_folder, filename):
     """
@@ -154,6 +153,9 @@ def process_attributes(directory, year_range):
         df_i = df_i.rename(columns=attribute_name_map)
 
         result_df = result_df.merge(df_i, how='outer', on='SEQN')
+
+        # Add year range column
+        result_df['Year Range'] = [year_range] * len(result_df)
 
     print(' - Merging all Datasets [SUCCESS]')
     return result_df
