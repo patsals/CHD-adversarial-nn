@@ -31,6 +31,7 @@ This repository contains all of the code that was utilized for the 2024-2025 UCS
 
 ##### 3) Downloading the Data
 - Run the data setup file to extract, transform, and load all of the data locally:
-    `python data_setup.py` for windows users
-    `python3 data_setup.py` for Linux/Mac OS users
+    - `python data_setup.py` for windows users
+    - `python3 data_setup.py` for Linux/Mac OS users
+    - adding the `--skip_download` flag skips the requesting/downloading of files
 - Note: The script makes requests to multiple url endpoints at www.sciencedirect.com to download the files. It is important to lookout for any message logs that dont show `[SUCCESS]` as an output — this indicates an error that needs to be resolved.
