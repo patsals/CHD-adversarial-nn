@@ -1,5 +1,5 @@
 # Ignore the venv directory
-venv
+*venv*
 
 # Ignore everything inside the data directory
 /data*
