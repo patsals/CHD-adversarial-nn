@@ -1,2 +1,9 @@
-venv
+# Ignore the venv directory
+*venv*
+
+# Ignore everything inside the data directory
 /data*
+
+# Do not ignore the data_preparation.ipynb file
+!data_preparation.ipynb
+!data_setup.py
