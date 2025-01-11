@@ -3,3 +3,7 @@ bs4
 requests
 pyarrow
 matplotlib
+tensorflow
+keras
+aif360
+numpy
