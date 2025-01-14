@@ -214,7 +214,6 @@ def extract_codebook(year_range, first_run=False):
     for file in sum(file_dictionary.values(), []):
         file_location = file.strip('.xpt')
         url = codebook_url.format(year_start, file_location)
-
         print(f' - Retrieving relevant attribute information from {file_location}:', end="")
         
         try:
@@ -232,7 +231,7 @@ def extract_codebook(year_range, first_run=False):
             # Iterate over each 'div' section
             for div in divs:
                 # Extract the variable name from 'dd' element with class 'info'
-                variable_name = div.find('dd', class_='info').text
+                variable_name = div.find('dd', class_='info').text.upper()
                 
                 # We only care about storing the attributes we are interested in
                 if variable_name not in data_attribute_dict[year_range]:
