@@ -197,7 +197,7 @@ def write_to_csv(file_path, new_row, header=False):
 
 def extract_codebook(year_range, first_run=False):
     """
-    Processes the dataset by extracting and renaming the desired columns.
+    Extract the codebook given a year range by webscraping it via url.
     
     Args:
         directory (str): The parent directory where all the data files are located.
