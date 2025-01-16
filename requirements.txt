@@ -7,3 +7,4 @@ tensorflow
 keras
 aif360
 numpy
+tensorflow_decision_forests

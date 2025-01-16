@@ -14,12 +14,18 @@ This repository contains all of the code that was utilized for the 2024-2025 UCS
     `git clone https://github.com`
 
 ##### 2.a) Setting up environment (Windows Users)
-- create a working environment:
-    `python -m venv venv`
-- activate the working environment:
-    `venv/scripts/activate`
-- download the dependencies:
-    `pip install -r requirements.txt`
+- Install Linux using Windows Subsystem for Linux (WSL) in powershell:
+    `wsl --install`
+- Install Linux Distribution System through Microsoft store:
+    `Ubuntu 22.04.5 LTS`
+- Open Ubuntu and wait for download to complete
+- Once download complete enter a Username and Password as prompted
+- Open VS Code then click on the two carrot mark icon on the bottom left of window:
+- Select the "Connect to WSL Using Distro...""
+- You should see `Ubuntu 22.04.5 LTS` and select that option
+- Next clone the Repository
+    `git clone https://github.com`
+- Proceed to 2.b instructions
 
 ##### 2.b) Setting up environment (Linux/Mac OS users)
 - create a working environment:
