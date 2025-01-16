@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from IPython.display import Markdown, display
 import os
 
 # Configurations
@@ -10,7 +9,7 @@ cleaned_data_filename = 'nhanes_data_processed.parquet'
 codebook_filename = "codebook.csv"
 resulting_filepath = os.path.join(data_directory, cleaned_data_filename)
 original_filepath = os.path.join(data_directory, raw_data_filename)
-codebook_filepath = os.path.join(data_directory, resulting_filepath)
+codebook_filepath = os.path.join(data_directory, codebook_filename)
 
 # Setup
 columns_with_nulls_to_drop = [
@@ -90,6 +89,9 @@ def map_enumerated_columns(df, codebook_df):
                 mask = (df['Year Range'] == year_range) & (df[q_attribute] == row['single_value'])
                 if row['description'] != 'Range of Values':
                     df.loc[mask, q_attribute] = row['description']
+    print()
+
+    return df
 
 
 def drop_null_values(df):
@@ -105,6 +107,8 @@ def drop_null_values(df):
     for column in columns_with_nulls_to_drop:
         df = df[~df[column].isna()]
 
+    return df
+
 
 def ignore_columns(df):
     """
@@ -115,6 +119,8 @@ def ignore_columns(df):
     """
     
     df = df[[col for col in df.columns if col not in columns_to_ignore]]
+
+    return df
 
 
 def impute_columns(df):
@@ -130,18 +136,22 @@ def impute_columns(df):
         num_null = df[column].isna().sum()
         print(f'"{column}": replacing {num_null} missing values with: {mean_value}')
         df.loc[df[column].isna(), column] = mean_value
+    print('\nNumber of remaining nulls:', df.isna().sum().sum())
+    print()
+
+    return df
 
 
 if __name__ == "__main__":
     df = pd.read_parquet(original_filepath)
     codebook_df = pd.read_csv(codebook_filepath)
 
-    map_enumerated_columns(df, codebook_df)
+    df = map_enumerated_columns(df, codebook_df)
 
-    drop_null_values(df)
+    df = drop_null_values(df)
 
-    ignore_columns(df)
+    df = ignore_columns(df)
 
-    impute_columns(df)
+    df = impute_columns(df)
 
     df.to_parquet(resulting_filepath)
