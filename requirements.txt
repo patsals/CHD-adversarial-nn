@@ -8,4 +8,3 @@ keras
 aif360
 numpy>=1.26.0,<2.1.0
 tensorflow_decision_forests
-imbalanced-learn
