@@ -10,8 +10,9 @@ This repository contains all of the code that was utilized for the 2024-2025 UCS
 ## How to get Started
 
 ##### 1) Getting the code
-- clone repository into your working directory:
+- Clone repository into your working directory:
     `git clone https://github.com/patsals/DSC-180-Capstone.git`
+- Enter the repository directory `DSC 180 Capstone`
 
 ##### 2.a) Setting up environment (Windows Users)
 - Install Linux using Windows Subsystem for Linux (WSL) in powershell:
@@ -23,8 +24,6 @@ This repository contains all of the code that was utilized for the 2024-2025 UCS
 - Open VS Code then click on the two caret mark icon on the bottom left of window:
 - Select the "Connect to WSL Using Distro...""
 - You should see `Ubuntu 22.04.5 LTS` and select that option
-- Next clone the Repository
-    `git clone https://github.com/patsals/DSC-180-Capstone.git`
 - Proceed to 2.b instructions
 
 ##### 2.b) Setting up environment (Linux/Mac OS users)
