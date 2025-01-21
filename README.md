@@ -11,7 +11,7 @@ This repository contains all of the code that was utilized for the 2024-2025 UCS
 
 ##### 1) Getting the code
 - clone repository into your working directory:
-    `git clone https://github.com`
+    `git clone https://github.com/patsals/DSC-180-Capstone.git`
 
 ##### 2.a) Setting up environment (Windows Users)
 - Install Linux using Windows Subsystem for Linux (WSL) in powershell:
@@ -20,19 +20,19 @@ This repository contains all of the code that was utilized for the 2024-2025 UCS
     `Ubuntu 22.04.5 LTS`
 - Open Ubuntu and wait for download to complete
 - Once download complete enter a Username and Password as prompted
-- Open VS Code then click on the two carrot mark icon on the bottom left of window:
+- Open VS Code then click on the two caret mark icon on the bottom left of window:
 - Select the "Connect to WSL Using Distro...""
 - You should see `Ubuntu 22.04.5 LTS` and select that option
 - Next clone the Repository
-    `git clone https://github.com`
+    `git clone https://github.com/patsals/DSC-180-Capstone.git`
 - Proceed to 2.b instructions
 
 ##### 2.b) Setting up environment (Linux/Mac OS users)
-- create a working environment:
+- Create a working environment:
     `python3 -m venv venv`
-- activate the working environment:
+- Activate the working environment:
     `source venv/bin/activate`
-- download the dependencies:
+- Download the dependencies:
     `pip install -r requirements.txt`
 
 ##### 3) Downloading the Data
@@ -40,4 +40,4 @@ This repository contains all of the code that was utilized for the 2024-2025 UCS
     - `python data_setup.py` for windows users
     - `python3 data_setup.py` for Linux/Mac OS users
     - adding the `--skip_download` flag skips the requesting/downloading of files
-- Note: The script makes requests to multiple url endpoints at www.sciencedirect.com to download the files. It is important to lookout for any message logs that dont show `[SUCCESS]` as an output — this indicates an error that needs to be resolved.
+- Note: The script makes requests to multiple url endpoints at www.sciencedirect.com to download the files. It is important to lookout for any message logs that do not show `[SUCCESS]` as an output — this indicates an error that needs to be resolved.
