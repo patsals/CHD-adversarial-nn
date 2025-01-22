@@ -8,3 +8,11 @@
 !data_preparation.ipynb
 !data_setup.py
 !data_process.py
+
+# Jupyter Notebook files
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Python Cache
+__pycache__/
+
