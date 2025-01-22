@@ -27,6 +27,7 @@ This repository contains all of the code that was utilized for the 2024-2025 UCS
 - Proceed to 2.b instructions
 
 ##### 2.b) Setting up environment (Linux/Mac OS users)
+- Note: TensorFlow may not be available for the latest version of Python. As of the development of this project, we are using Python 3.11.
 - Create a working environment:
     `python3 -m venv venv`
 - Activate the working environment:
