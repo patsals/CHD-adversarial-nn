@@ -22,7 +22,7 @@ This repository contains all of the code that was utilized for the 2024-2025 UCS
 - Open Ubuntu and wait for download to complete
 - Once download complete enter a Username and Password as prompted
 - Open VS Code then click on the two caret mark icon on the bottom left of window:
-- Select the "Connect to WSL Using Distro...""
+- Select the "Connect to WSL Using Distro..."
 - You should see `Ubuntu 22.04.5 LTS` and select that option
 - Proceed to 2.b instructions
 
