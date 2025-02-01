@@ -13,9 +13,10 @@ import numpy as np
 from aif360.metrics import ClassificationMetric
 from aif360.datasets import BinaryLabelDataset
 import time
+from collections import deque
 
 class AdversarialModel(keras.Model):
-    def __init__(self, input_dim, sensitive_attr = str,lambda_tradeoff=0.1, metric = str, GBT_retrain = 5, epochs = 100, num_batches = 32):
+    def __init__(self, input_dim, sensitive_attr,lambda_tradeoff=0.1, GBT_retrain = 5, epochs = 100):
         super().__init__()
 
         # Initialize Attributes
@@ -23,8 +24,8 @@ class AdversarialModel(keras.Model):
         self.sensitive_attr = sensitive_attr
         self.epochs = epochs
         self.GBT_retrain = GBT_retrain
-        self.metric = metric
-        self.num_batches = num_batches
+    
+        
    
         # Define the main neural network
         self.dense1 = Dense(32, activation='relu', input_dim = input_dim)
@@ -35,7 +36,7 @@ class AdversarialModel(keras.Model):
         
         # Loss function and optimizer for Main Model
         self.loss_fn = keras.losses.BinaryCrossentropy()
-        self.optimizer = keras.optimizers.Adam(learning_rate=0.001)
+        self.optimizer = keras.optimizers.Adam(learning_rate=0.001, loss= keras.losses.BinaryCrossentropy())
 
         # Adversarial model (Gradient Boosted Trees)
         self.adversarial_model = tfdf.keras.GradientBoostedTreesModel(n_estimators=100, learning_rate=0.1, task = tfdf.keras.Task.CLASSIFICATION)
@@ -48,101 +49,124 @@ class AdversarialModel(keras.Model):
         return self.output_layer(x)
 
     def fit(self, data):
-        
-        # Senstive Attribute
-        z = data[self.sensitive_attr]
 
-        # Loss Results
-        main_model_train_loss_results = []
-        combined_train_los_results = []
+        # Training Accuracy Metrics
+        main_acc_metric = keras.metrics.BinaryCrossentropy()
 
+        # Number of Batches
+        num_batches = len(data)
+       
         for epoch in range(self.epochs):
-            epoch_loss_avg = tf.keras.metrics.Mean()
-            epoch_accuracy = tf.keras.metrics.BinaryAccuracy()
-
+            
             # Epoch Progress Tracking
             start_time = time.time()
             print(f"\nEpoch {epoch + 1}/{self.epochs}")
-            progbar = keras.utils.Progbar(target=self.num_batches)
+            progbar = keras.utils.Progbar(target = num_batches)
 
+            # Track epoch loss
+            epoch_loss = 0
+
+            # Adversarial Model is Trained at every K Epochs
             if epoch % self.GBT_retrain == 0:
-                y_pred_full = []
-                y_train_full = []
+                y_preds = []
+                z_labels = []
 
-                for X_train, y_train in data:
-                    y_pred_full.extend(self(X_train, train=False).numpy().flatten())
-                    y_train_full.extend(y_train.numpy().flatten())
+                # Get Predictions For Most Recent Updated Main Model
+                for step, (X_batch_train, _, z_batch_train) in enumerate(data):
+                    y_pred = self(X_batch_train, train=False)  # Forward pass in mini-batch mode
+                    y_preds.append(y_pred.numpy())
+                    z_labels.append(z_batch_train.numpy())
 
                 # Train the adversarial model on predictions vs sensitive attribute
-                self.adversarial_model.fit(x=y_pred_full, y=z)
+                self.adversarial_model.fit(x=np.vstack(y_preds), y=np.vstack(z_labels))
 
                 # Compute Adversarial Model Loss
                 adversarial_model_loss  = self.adversarial_model.make_inspector().evaluation()[2]
 
-            for batch_idx, (X_train, y_train) in enumerate(data):
+           
+            for step, (X_batch_train, y_batch_train) in enumerate(data):
 
                 with tf.GradientTape() as tape:
                     # Forward pass
-                    y_pred = self(X_train, train=True)
+                    y_pred = self(X_batch_train, train=True)
 
                     # Compute Main Model Loss
-                    main_model_loss = self.loss_fn(y_train, y_pred)
+                    main_model_loss = self.loss_fn(y_batch_train, y_pred)
 
-                    if epoch % self.GBT_retrain == 0:
-                        # Compute Combined Loss
-                        combined_loss = main_model_loss + (main_model_loss / adversarial_model_loss) - (self.lambda_tradeoff * adversarial_model_loss)
+                    # Compute Combined Loss
+                    combined_loss = main_model_loss + (main_model_loss / adversarial_model_loss + 1e-7) - (self.lambda_tradeoff * adversarial_model_loss)
 
-                        # Compute gradients
-                        trainable_vars = self.trainable_variables
-                        gradients = tape.gradient(combined_loss, trainable_vars)
+                # Compute gradients
+                gradients = tape.gradient(combined_loss, self.trainable_weights)
 
-                        # Update weights
-                        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+                # Update weights
+                self.optimizer.apply(zip(gradients, self.trainable_weights))
 
-                         # Track Model Progress
-                        epoch_loss_avg.update_state(combined_loss)
-                        epoch_accuracy.update_state(y_train, y_pred)
-                        
-                    else:
-                         # Compute gradients
-                        trainable_vars = self.trainable_variables
-                        gradients = tape.gradient(main_model_loss, trainable_vars)
+          
+                 # Update training metric.
+                main_acc_metric.update_state(y_batch_train, y_pred)
 
-                        # Update weights
-                        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-
-                         # Track Model Progress
-                        epoch_loss_avg.update_state(main_model_loss)
-                        epoch_accuracy.update_state(y_train, y_pred)
-
-            # End epoch
-            main_model_train_loss_results.append(epoch_loss_avg.result())
-            combined_train_los_results.append(epoch_accuracy.result())
-
-            # Update Progress Bar
-            progbar.update(1, values=[("accuracy", epoch_accuracy.result()), ("loss", epoch_loss_avg.result())])
-
-            # Calculate elapsed time per step
-            elapsed_time = time.time() - start_time
-            time_per_epoch = elapsed_time / self.num_batches * 1e6  # Convert to microseconds
-
-            print(f"{self.num_batches}/{self.num_batches} - {int(elapsed_time)}s {int(time_per_epoch)}us/step "
-            f"- accuracy: {epoch_accuracy.result():.4f} - loss: {epoch_loss_avg.result():.4f}")
-
-            if epoch > 0 and epoch % 100 == 0:
-                self.save("/Saved_Models/Main_Model")
-                self.adversarial_model.save_model("/Saved_Models/Adversarial_Model")
-
-        # Save Final Neural Network Model
-        self.save("/Saved_Models/Final_Model")
-
-        return self
+                # Track loss for epoch summary
+                epoch_loss += combined_loss.numpy()
 
 
-    def evaluate(self, X, y):
+            # Update Progress Bar per batch
+            progbar.update(step + 1, values=[("loss", float(combined_loss)), ("accuracy", float(main_acc_metric.result()))])
+             
+                    
+        # Final calculations per epoch
+        elapsed_time = time.time() - start_time
+        time_per_step = elapsed_time / num_batches * 1e6  # Convert to microseconds
+        final_accuracy = main_acc_metric.result().numpy()
+        final_loss = epoch_loss / num_batches
 
-        loss_avg = tf.keras.metrics.Mean()
-        accuracy_metric = tf.keras.metrics.BinaryAccuracy()
+        # Print final epoch stats
+        print(f"\n{num_batches}/{num_batches} - {int(elapsed_time)}s {int(time_per_step)}us/step - accuracy: {final_accuracy:.4f} - loss: {final_loss:.4f}")
+
+        # Reset Accuracy for Next Epoch
+        main_acc_metric.reset_state()
+
+    def predict(self, X_input, threshold = None, raw_probabilities = False):
+
+    
+        if threshold is None:
+            threshold = 0.11
+
+        pred_proba = super().predict(X_input)
+
+        zpred_proba = self.adversarial_model.predict(pred_proba)
+
+        if raw_probabilities == False:
+
+            return pred_proba, zpred_proba
+        
+        else:
+             
+            binary_preds =  (pred_proba >= threshold).astype(int)
+            binary_zpreds = (zpred_proba >= threshold).astype(int)
+
+            return binary_preds, binary_zpreds
+        
+
+    # From https://keras.io/guides/custom_train_step_in_tensorflow/
+    def test_step(self, data):
+        # Unpack the data
+        x, y = data
+        # Compute predictions
+        y_pred = self(x, training=False)
+        # Updates the metrics tracking the loss
+        loss = self.compute_loss(y=y, y_pred=y_pred)
+        # Update the metrics.
+        for metric in self.metrics:
+            if metric.name == "loss":
+                metric.update_state(loss)
+            else:
+                metric.update_state(y, y_pred)
+        # Return a dict mapping metric names to current value.
+        # Note that it will include the loss (tracked in self.metrics).
+        return {m.name: m.result() for m in self.metrics}
+
+
 
 
 
