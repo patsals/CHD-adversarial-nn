@@ -16,7 +16,7 @@ import time
 from collections import deque
 
 class AdversarialModel(keras.Model):
-    def __init__(self, input_dim, sensitive_attr,lambda_tradeoff=0.1, GBT_retrain = 5, epochs = 100):
+    def __init__(self, input_dim, sensitive_attr,lambda_tradeoff=0.1, GBT_retrain = 5, epochs = 100, learning_rate=0.001):
         super().__init__()
 
         # Initialize Attributes
@@ -34,7 +34,7 @@ class AdversarialModel(keras.Model):
         
         # Metrics and optimizer for Main Model
         self.loss_fn = keras.losses.BinaryCrossentropy(name="loss")
-        self.optimizer = keras.optimizers.Adam(learning_rate=0.001)
+        self.optimizer = keras.optimizers.Adam(learning_rate=learning_rate)
         self.main_acc_metric = keras.metrics.BinaryAccuracy(name="accuracy")
 
         # Adversarial model (Gradient Boosted Trees)
