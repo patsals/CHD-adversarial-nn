@@ -3,10 +3,12 @@ import argparse
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+import tensorflow as tf
+import numpy as np
 
 categorical_cols = ['Diabetes', 'Blood related diabetes', 'Vigorous-work', 'Gender']
 
-def process_data(data_df = pd.DataFrame, target = str):
+def process_data(data_df=pd.DataFrame, target=str):
 
     # One-hot encoding
     data_df = pd.get_dummies(data_df, columns=categorical_cols, drop_first=True)
@@ -50,26 +52,24 @@ if __name__ == "__main__":
     X, y = process_data(data_df=df, target='Coronary heart disease')
 
     # using pd.get_dummies() alters the original sensitive column's name
-    new_sensitive_column_name = [col for col in X.columns if sensitive_attribute in col]
+    new_sensitive_column_name = [col for col in X.columns if sensitive_attribute in col][0]
 
-
-    # # HMMM NEED TO DECIDE HOW TO PROCESS THE DATA LIKE SO:
-    # feature_columns = df.columns[:-1]  # All columns except the last two (includes sensitive feature)
-    # sensitive_column = df.columns[-2]  # The third last column as the sensitive feature
-    # label_columns = df.columns[-1]  # The last two columns as labels
+    label_column = 'Coronary heart disease'
+    feature_columns = [col for col in df.columns if col != label_column]
+    
 
     # # Convert Pandas DataFrame to a TensorFlow dataset
-    # dataset = tf.data.Dataset.from_tensor_slices((
-    #     df[feature_columns].values.astype(np.float32),  # Features
-    #     df[sensitive_column].values.reshape(-1, 1).astype(np.int32),  # Sensitive Feature
-    #     df[label_columns].values.astype(np.int32)  # Ensure labels are integers
-    # ))
+    dataset = tf.data.Dataset.from_tensor_slices((
+        X.values.astype(np.float32),  # Features
+        X[new_sensitive_column_name].values.reshape(-1, 1).astype(np.int32),  # Sensitive Feature
+        y.values.astype(np.int32)  # Ensure labels are integers
+    ))
     # # Define batch size
-    # batch_size = 16  
+    batch_size = 16  
 
     # # Shuffle before batching
-    # buffer_size = len(df)  # Ideally, use the dataset size as the buffer
-    # shuffled_dataset = dataset.shuffle(buffer_size, seed=42).batch(batch_size)
+    buffer_size = len(df)  # Ideally, use the dataset size as the buffer
+    shuffled_dataset = dataset.shuffle(buffer_size, seed=42).batch(batch_size)
 
     # BUT WE ALSO NEED TO SCALE THE DATA AND SPLIT IT INTO TRAIN TEST..
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -89,4 +89,4 @@ if __name__ == "__main__":
                              learning_rate=learning_rate)
     
 
-    # model.fit(shuffled_dataset)
+    model.fit(shuffled_dataset)
