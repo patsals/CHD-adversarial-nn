@@ -4,8 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import tensorflow as tf
-import tensorflow_decision_forests as tfdf
-import tf_keras
+import keras
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder, OneHotEncoder
@@ -29,6 +28,40 @@ def model_assessment(predictions, actuals):
     })
 
     return results
+
+def fairness_metrics(input_df, predictions):
+
+    binary_dataset = BinaryLabelDataset(df=input_df, 
+                                    label_names=['Coronary heart disease'], 
+                                    protected_attribute_names=['Gender'])
+
+    # Create predictions dataset
+    pred_df = input_df.drop('Coronary heart disease', axis = 1)
+    pred_df['Coronary heart disease'] = predictions
+    binary_predictions = BinaryLabelDataset(df=pred_df, 
+                                            label_names=['Coronary heart disease'], 
+                                            protected_attribute_names=['Gender'])
+
+    # Compute metrics
+    metric = ClassificationMetric(binary_dataset, binary_predictions, 
+                                unprivileged_groups=[{'Gender': 1}], 
+                                privileged_groups=[{'Gender': 0}]) 
+    
+    demographic_parity_difference = metric.statistical_parity_difference()
+    equal_opportunity_difference = metric.equal_opportunity_difference()
+    predictive_parity = metric.statistical_parity_difference()
+    disparate_impact = metric.disparate_impact()
+
+
+    #Output Metrics in a Pandas DataFrame
+    fairness_table = pd.DataFrame({
+        'Metric': ['Demographic Parity Difference', 'Equal Opportunity Difference',
+                   'Predictive Parity', 'Disparate Impact'],
+        'Value': [demographic_parity_difference, equal_opportunity_difference,
+                  predictive_parity, disparate_impact]
+    })
+
+    return fairness_table
 
 
 
