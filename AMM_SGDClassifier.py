@@ -16,7 +16,6 @@ class AdversarialModel(keras.Model):
 
         # Initialize Attributes
         self.lambda_tradeoff = lambda_tradeoff  # Trade-off parameter for adversarial penalty
-        self.sensitive_attr = sensitive_attr
         self.epochs = epochs
     
    
