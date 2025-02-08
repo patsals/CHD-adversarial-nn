@@ -4,6 +4,9 @@
 # Ignore everything inside the data directory
 /data*
 
+# Ignore everything saved in the results directory
+results/
+
 # Do not ignore specific file
 !data_preparation.ipynb
 !data_setup.py

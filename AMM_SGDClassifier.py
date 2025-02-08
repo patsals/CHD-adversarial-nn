@@ -11,12 +11,13 @@ import time
 
 
 class AdversarialModel(keras.Model):
-    def __init__(self, input_dim, lambda_tradeoff=0.1, epochs = 100, learning_rate=0.001):
+    def __init__(self, input_dim, lambda_tradeoff=0.1, epochs = 100, learning_rate=0.001, patience=10, adv_model_type='logistic_regression'):
         super().__init__()
 
         # Initialize Attributes
         self.lambda_tradeoff = lambda_tradeoff  # Trade-off parameter for adversarial penalty
         self.epochs = epochs
+        self.patience = patience
     
    
         # Define the main neural network
@@ -24,8 +25,6 @@ class AdversarialModel(keras.Model):
         self.dropout1 = Dropout(0.3)  # Added Dropout layer
         self.dense2 = Dense(16, activation='relu')
         self.output_layer = Dense(1, activation='sigmoid')  # Binary classification
-    
-        
         # Metrics and optimizer for Main Model
         self.loss_fn = keras.losses.BinaryCrossentropy(name="loss")
         self.optimizer = keras.optimizers.Adam(learning_rate=learning_rate)
@@ -33,7 +32,22 @@ class AdversarialModel(keras.Model):
         self.balanced_acc = BalancedAccuracy()
 
         # Adversarial model (SGD Classifier)
-        self.adv_model = SGDClassifier(loss='log_loss', learning_rate="constant", eta0=0.01)
+        if adv_model_type == 'perceptron':
+            loss_type = 'perceptron'
+        elif adv_model_type == 'svm':
+            loss_type = 'hinge'
+        else:
+            loss_type = 'log_loss'
+
+        self.adv_model = SGDClassifier(loss=loss_type, learning_rate="constant", eta0=0.01)
+
+        # Store test results
+        self.results = {
+            'epoch': [],
+            'accuracy': [],
+            'balanced_accuracy': [],
+            'loss': []
+        }
 
     def call(self, inputs, train = False):
         """Forward pass"""
@@ -74,11 +88,10 @@ class AdversarialModel(keras.Model):
                     # Compute Adversarial Predictions
                     self.adv_model.partial_fit(adv_input , z_batch_train, classes=np.array([0, 1]))
                     adv_preds = self.adv_model.predict_proba(adv_input)[:, 1]
+                    self.adv_model.warm_start=True
 
                     # Compute Adversarial Loss
                     adv_loss = log_loss(z_batch_train, adv_preds, labels=[0, 1])
-
-
 
                     # Compute Combined Loss
                     combined_loss = main_model_loss + (main_model_loss / (adv_loss + 1e-7)) - (self.lambda_tradeoff * adv_loss)
@@ -97,11 +110,20 @@ class AdversarialModel(keras.Model):
                 # Track loss for epoch summary
                 epoch_loss += combined_loss.numpy()
 
-
             # Update Progress Bar per batch
             progbar.update(step + 1, values=[("loss", float(combined_loss)), 
                                              ("accuracy", float(self.main_acc_metric.result())),
-                                             ("balanced accuracy", float(self.balanced_acc.result()))])
+                                             ("balanced accuracy", self.balanced_acc.result())])
+            
+            # Store all epoch metrics in results
+            self.results['epoch'].append(epoch)
+            self.results['accuracy'].append(float(self.main_acc_metric.result()))
+            self.results['loss'].append(float(combined_loss))
+            self.results['balanced_accuracy'].append(float(self.balanced_acc.result()))
+
+            # Evaluate patience
+            if epoch > 1 and max(self.results['loss'][-(self.patience+1):-1]) < self.results['loss'][-1]:
+                exit()
              
                     
         # Final calculations per epoch
