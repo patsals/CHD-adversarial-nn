@@ -30,6 +30,7 @@ class AdversarialModel(keras.Model):
         self.loss_fn = keras.losses.BinaryCrossentropy(name="loss")
         self.optimizer = keras.optimizers.Adam(learning_rate=learning_rate)
         self.main_acc_metric = keras.metrics.BinaryAccuracy(name="accuracy")
+        self.balanced_acc = BalancedAccuracy()
 
         # Adversarial model (SGD Classifier)
         self.adv_model = SGDClassifier(loss='log_loss', learning_rate="constant", eta0=0.01)
@@ -91,13 +92,16 @@ class AdversarialModel(keras.Model):
           
                  # Update training metric.
                 self.main_acc_metric.update_state(y_batch_train, y_pred)
+                self.balanced_acc.update_state(y_batch_train, y_pred)
 
                 # Track loss for epoch summary
                 epoch_loss += combined_loss.numpy()
 
 
             # Update Progress Bar per batch
-            progbar.update(step + 1, values=[("loss", float(combined_loss)), ("accuracy", float(self.main_acc_metric.result()))])
+            progbar.update(step + 1, values=[("loss", float(combined_loss)), 
+                                             ("accuracy", float(self.main_acc_metric.result())),
+                                             ("balanced accuracy", float(self.balanced_acc.result()))])
              
                     
         # Final calculations per epoch
@@ -136,3 +140,37 @@ class AdversarialModel(keras.Model):
 
             return binary_preds
     
+
+
+class BalancedAccuracy(keras.metrics.Metric):
+    def __init__(self, name="balanced_accuracy", **kwargs):
+        super(BalancedAccuracy, self).__init__(name=name, **kwargs)
+        self.true_positives = self.add_weight(name="tp", initializer="zeros")
+        self.false_negatives = self.add_weight(name="fn", initializer="zeros")
+        self.true_negatives = self.add_weight(name="tn", initializer="zeros")
+        self.false_positives = self.add_weight(name="fp", initializer="zeros")
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        y_pred = tf.cast(y_pred > 0.5, tf.float32)  # Convert probabilities to binary labels
+
+        tp = tf.reduce_sum(tf.cast(tf.logical_and(y_true == 1, y_pred == 1), tf.float32))
+        fn = tf.reduce_sum(tf.cast(tf.logical_and(y_true == 1, y_pred == 0), tf.float32))
+        tn = tf.reduce_sum(tf.cast(tf.logical_and(y_true == 0, y_pred == 0), tf.float32))
+        fp = tf.reduce_sum(tf.cast(tf.logical_and(y_true == 0, y_pred == 1), tf.float32))
+
+        self.true_positives.assign_add(tp)
+        self.false_negatives.assign_add(fn)
+        self.true_negatives.assign_add(tn)
+        self.false_positives.assign_add(fp)
+
+    def result(self):
+        sensitivity = self.true_positives / (self.true_positives + self.false_negatives + tf.keras.backend.epsilon())  # Recall
+        specificity = self.true_negatives / (self.true_negatives + self.false_positives + tf.keras.backend.epsilon())
+
+        return (sensitivity + specificity) / 2  # Balanced accuracy
+
+    def reset_state(self):
+        self.true_positives.assign(0)
+        self.false_negatives.assign(0)
+        self.true_negatives.assign(0)
+        self.false_positives.assign(0)

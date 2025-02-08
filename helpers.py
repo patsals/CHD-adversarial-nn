@@ -8,7 +8,7 @@ import keras
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder, OneHotEncoder
-from sklearn.metrics import classification_report, roc_auc_score,accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import classification_report, roc_auc_score,accuracy_score, precision_score, recall_score, f1_score, balanced_accuracy_score
 
 from aif360.metrics import ClassificationMetric
 from aif360.datasets import BinaryLabelDataset
@@ -19,12 +19,14 @@ def model_assessment(predictions, actuals):
     overall_accuracy = accuracy_score(actuals, predictions)
     overall_recall = recall_score(actuals, predictions)
     overall_precision = precision_score(actuals, predictions)
+    overall_balanced_accuracy = balanced_accuracy_score(actuals, predictions)
 
     results = pd.DataFrame({
         'Group': ['Overall'],
         'Accuracy': [overall_accuracy],
         'Recall': [overall_recall],
-        'Precision': [overall_precision]
+        'Precision': [overall_precision],
+        'Balanced Accuracy': [overall_balanced_accuracy]
     })
 
     return results
