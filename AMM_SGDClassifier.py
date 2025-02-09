@@ -87,7 +87,13 @@ class AdversarialModel(keras.Model):
 
                     # Compute Adversarial Predictions
                     self.adv_model.partial_fit(adv_input , z_batch_train, classes=np.array([0, 1]))
-                    adv_preds = self.adv_model.predict_proba(adv_input)[:, 1]
+
+                    # Handle cases where predict_proba is unavailable
+                    if self.adv_model.loss in ['hinge', 'perceptron']:
+                        raw_scores = self.adv_model.decision_function(adv_input)  # Get raw margin scores
+                        adv_preds = tf.sigmoid(raw_scores)  
+                    else:
+                        adv_preds = self.adv_model.predict_proba(adv_input)[:, 1] 
                     self.adv_model.warm_start=True
 
                     # Compute Adversarial Loss
