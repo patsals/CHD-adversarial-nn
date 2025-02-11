@@ -51,16 +51,20 @@ def fairness_metrics(input_df, predictions):
     
     demographic_parity_difference = metric.statistical_parity_difference()
     equal_opportunity_difference = metric.equal_opportunity_difference()
-    predictive_parity = metric.statistical_parity_difference()
+    # predictive_parity = metric.statistical_parity_difference()
     disparate_impact = metric.disparate_impact()
 
 
     #Output Metrics in a Pandas DataFrame
     fairness_table = pd.DataFrame({
-        'Metric': ['Demographic Parity Difference', 'Equal Opportunity Difference',
-                   'Predictive Parity', 'Disparate Impact'],
-        'Value': [demographic_parity_difference, equal_opportunity_difference,
-                  predictive_parity, disparate_impact]
+        'Metric': ['Demographic Parity Difference', 
+                   'Equal Opportunity Difference',
+                   #'Predictive Parity', 
+                   'Disparate Impact'],
+        'Value': [demographic_parity_difference, 
+                  equal_opportunity_difference,
+                #   predictive_parity, 
+                  disparate_impact]
     })
 
     return fairness_table
