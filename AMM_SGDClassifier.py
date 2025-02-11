@@ -129,7 +129,8 @@ class AdversarialModel(keras.Model):
 
             # Evaluate patience
             if epoch > 1 and max(self.results['loss'][-(self.patience+1):-1]) < self.results['loss'][-1]:
-                exit()
+                print('Reached patience level, ending training...')
+                return 
              
                     
         # Final calculations per epoch

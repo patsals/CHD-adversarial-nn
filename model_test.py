@@ -73,6 +73,7 @@ if __name__ == "__main__":
     fairness_df = X_val.copy()
     fairness_df['Coronary heart disease'] = y_val
 
+    print('Finished Training')
     
     # Save all run results
     run_results_directory = f'{lamdba_tradeoff}_{epochs}_{learning_rate}_{patience}_{batch_size}_{adv_model_type}'
