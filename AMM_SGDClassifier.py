@@ -39,7 +39,7 @@ class AdversarialModel(keras.Model):
         else:
             loss_type = 'log_loss'
 
-        self.adv_model = SGDClassifier(loss=loss_type, learning_rate="constant", eta0=0.01)
+        self.adv_model = SGDClassifier(loss=loss_type, learning_rate="constant", eta0=0.01, n_jobs=-1)
 
         # Store test results
         self.results = {
