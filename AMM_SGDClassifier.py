@@ -128,7 +128,7 @@ class AdversarialModel(keras.Model):
             self.results['balanced_accuracy'].append(float(self.balanced_acc.result()))
 
             # Evaluate patience
-            if epoch > 1 and max(self.results['loss'][-(self.patience+1):-1]) < self.results['loss'][-1]:
+            if epoch > self.patience and max(self.results['loss'][-(self.patience+1):-1]) < self.results['loss'][-1]:
                 print('Reached patience level, ending training...')
                 return 
              

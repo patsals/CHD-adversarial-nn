@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     df = pd.read_parquet('data/nhanes_data_processed.parquet')
 
-    batched_dataset, X_val, y_val, X_test, y_test = helpers.data_processor(df, batch_size)
+    batched_dataset, X_val, y_val, X_test, y_test = helpers.data_processor(df, batch_size, balance=True)
 
     model = AdversarialModel(input_dim=41, # we can infer input_dim by len(axis=1) of dataset
                              lambda_tradeoff=lamdba_tradeoff, 
