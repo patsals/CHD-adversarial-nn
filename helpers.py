@@ -119,7 +119,6 @@ def data_processor(data, batch_size, balance=False):
         additional_minority_indices = np.random.choice(len(minority_df), majority_minority_difference, replace=True)
         additional_minority_samples = minority_df.iloc[additional_minority_indices]
 
-        print(additional_minority_samples)
         data = pd.concat([data, additional_minority_samples], axis=0, ignore_index=True)
 
     # Separate Data to Features and Labels

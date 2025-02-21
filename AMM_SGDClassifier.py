@@ -46,7 +46,9 @@ class AdversarialModel(keras.Model):
             'epoch': [],
             'accuracy': [],
             'balanced_accuracy': [],
-            'loss': []
+            'loss': [],
+            'main_model_loss': [],
+            'adv_model_loss': []
         }
 
     def call(self, inputs, train = False):
@@ -71,7 +73,8 @@ class AdversarialModel(keras.Model):
 
             # Track epoch loss
             epoch_loss = 0
-
+            total_main_model_loss = 0
+            total_adv_loss = 0
            
             for step, (X_batch_train,z_batch_train, y_batch_train) in enumerate(data):
 
@@ -100,7 +103,7 @@ class AdversarialModel(keras.Model):
                     adv_loss = log_loss(z_batch_train, adv_preds, labels=[0, 1])
 
                     # Compute Combined Loss
-                    combined_loss = main_model_loss + (main_model_loss / (adv_loss + 1e-7)) - (self.lambda_tradeoff * adv_loss)
+                    combined_loss = main_model_loss + (main_model_loss / (adv_loss)) - (self.lambda_tradeoff * adv_loss)
 
                 # Compute gradients
                 gradients = tape.gradient(combined_loss, self.trainable_weights)
@@ -115,20 +118,26 @@ class AdversarialModel(keras.Model):
 
                 # Track loss for epoch summary
                 epoch_loss += combined_loss.numpy()
+                total_main_model_loss += main_model_loss.numpy()
+                total_adv_loss += adv_loss
 
             # Update Progress Bar per batch
-            progbar.update(step + 1, values=[("loss", float(combined_loss)), 
+            progbar.update(step + 1, values=[("total loss", float(epoch_loss)), 
+                                             ("main model loss", float(total_main_model_loss)),
+                                             ("adv loss", float(total_adv_loss)),
                                              ("accuracy", float(self.main_acc_metric.result())),
                                              ("balanced accuracy", self.balanced_acc.result())])
             
             # Store all epoch metrics in results
             self.results['epoch'].append(epoch)
             self.results['accuracy'].append(float(self.main_acc_metric.result()))
-            self.results['loss'].append(float(combined_loss))
+            self.results['loss'].append(float(epoch_loss))
+            self.results['main_model_loss'].append(float(total_main_model_loss))
+            self.results['adv_model_loss'].append(float(total_adv_loss))
             self.results['balanced_accuracy'].append(float(self.balanced_acc.result()))
 
             # Evaluate patience
-            if epoch > self.patience and max(self.results['loss'][-(self.patience+1):-1]) < self.results['loss'][-1]:
+            if epoch > self.patience and max(self.results['main_model_loss'][-(self.patience+1):-1]) < self.results['main_model_loss'][-1]:
                 print('Reached patience level, ending training...')
                 return 
              

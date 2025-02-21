@@ -95,7 +95,7 @@ if __name__ == "__main__":
     model_fairness_df.to_csv(os.path.join(run_results_directory,'fairness_assessment.csv'))
 
     # plot metrics
-    for metric in ['loss', 'accuracy', 'balanced_accuracy']:
+    for metric in ['loss', 'accuracy', 'balanced_accuracy', 'main_model_loss', 'adv_model_loss']:
         plot_metric(x=model.results['epoch'], 
                     y=model.results[metric], 
                     x_label='epoch', 
