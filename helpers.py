@@ -148,5 +148,18 @@ def data_processor(data, batch_size, balance=False):
     buffer_size = len(X_train)  # Ideally, use the dataset size as the buffer
     batched_dataset = dataset.shuffle(buffer_size, seed=42).batch(batch_size)
 
-    return batched_dataset, X_val, y_val, X_test, y_test
+    return batched_dataset, X_train, y_train, X_val, y_val, X_test, y_test
 
+
+def balance_dataset(data):
+    num_majority = len(data[data['Coronary heart disease'] == 0])
+    num_minority = len(data[data['Coronary heart disease'] == 1])
+    majority_minority_difference = num_majority - num_minority
+
+    minority_df = data[data['Coronary heart disease'] == 1]
+    additional_minority_indices = np.random.choice(len(minority_df), majority_minority_difference, replace=True)
+    additional_minority_samples = minority_df.iloc[additional_minority_indices]
+
+    data = pd.concat([data, additional_minority_samples], axis=0, ignore_index=True)
+
+    return data

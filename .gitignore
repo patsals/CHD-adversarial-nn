@@ -5,7 +5,7 @@
 /data*
 
 # Ignore everything saved in the results directory
-results/
+results*/
 
 # Do not ignore specific file
 !data_preparation.ipynb

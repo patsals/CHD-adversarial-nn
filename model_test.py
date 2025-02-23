@@ -10,8 +10,10 @@ import helpers
 from sklearn.metrics import  f1_score
 import matplotlib.pyplot as plt
 import os
+import csv
 
 RESULTS_DIRECTORY = 'results'
+OVERALL_RESULTS_CSV = 'overall_results.csv'
 
 def plot_metric(x, y, x_label, y_label, title, metric, plot_directory):
     # Create plot
@@ -26,6 +28,28 @@ def plot_metric(x, y, x_label, y_label, title, metric, plot_directory):
     plot_file_path = os.path.join(plot_directory, metric+'.png')
     plt.savefig(plot_file_path, dpi=300, bbox_inches='tight')
 
+def append_to_csv(file_name, data):
+    file_exists = os.path.isfile(file_name)
+    
+    with open(file_name, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        
+        # write the header only if the file does not exist
+        if not file_exists:
+            writer.writerow(["adv_model_type",
+                             "lambda_tradeoff",
+                             "learning_rate",
+                             "batch_size",
+                             "test_accuracy", 
+                             "test_recall", 
+                             "test_precision", 
+                             "test_balanced_accuracy",
+                             "demographic_parity_difference",
+                             "equal_opportunity_difference",
+                             "disparate_impact"
+                             ]) 
+        
+        writer.writerow(data)
     
 if __name__ == "__main__":
 
@@ -50,7 +74,7 @@ if __name__ == "__main__":
 
     df = pd.read_parquet('data/nhanes_data_processed.parquet')
 
-    batched_dataset, X_val, y_val, X_test, y_test = helpers.data_processor(df, batch_size, balance=True)
+    batched_dataset, X_train, y_train, X_val, y_val, X_test, y_test = helpers.data_processor(df, batch_size, balance=True)
 
     model = AdversarialModel(input_dim=41, # we can infer input_dim by len(axis=1) of dataset
                              lambda_tradeoff=lamdba_tradeoff, 
@@ -60,19 +84,7 @@ if __name__ == "__main__":
                              adv_model_type=adv_model_type)
     
 
-    model.fit(batched_dataset)
-
-    X_val_array = np.array(X_val).astype(np.float32) 
-    X_val_tensor = tf.convert_to_tensor(X_val_array, dtype=tf.float32)
-    raw_preds = model.predict(X_val_tensor, raw_probabilities=True)
-
-    preds = (raw_preds >= 0.11).astype(int)
-    preds = preds.flatten()
-    y_val = y_val.astype(int)
-
-    fairness_df = X_val.copy()
-    fairness_df['Coronary heart disease'] = y_val
-
+    model.fit(batched_dataset, X_train, y_train)
     print('Finished Training')
     
     # Save all run results
@@ -85,17 +97,67 @@ if __name__ == "__main__":
     pd.DataFrame(model.results).to_csv(os.path.join(run_results_directory, 'epoch_results.csv'))
 
     print('Model assessment:')
-    model_assessment_df = helpers.model_assessment(preds, y_val)
-    print(model_assessment_df)
-    model_assessment_df.to_csv(os.path.join(run_results_directory,'metrics_assessment.csv'))
+    # Validation
+    X_val_array = np.array(X_val).astype(np.float32) 
+    X_val_tensor = tf.convert_to_tensor(X_val_array, dtype=tf.float32)
+    raw_preds = model.predict(X_val_tensor, raw_probabilities=True)
+    val_preds = (raw_preds >= 0.11).astype(int)
+    val_preds = val_preds.flatten()
+    y_val = y_val.astype(int)
+    val_fairness_df = X_val.copy()
+    val_fairness_df['Coronary heart disease'] = y_val
+    val_model_assessment_df = helpers.model_assessment(val_preds, y_val)
+    print(val_model_assessment_df)
+    val_model_assessment_df.to_csv(os.path.join(run_results_directory,'val_metrics_assessment.csv'))
+
+    # Test
+    X_test_array = np.array(X_test).astype(np.float32) 
+    X_test_tensor = tf.convert_to_tensor(X_test_array, dtype=tf.float32)
+    raw_preds = model.predict(X_test_tensor, raw_probabilities=True)
+    test_preds = (raw_preds >= 0.11).astype(int)
+    test_preds = test_preds.flatten()
+    y_test = y_test.astype(int)
+    test_fairness_df = X_test.copy()
+    test_fairness_df['Coronary heart disease'] = y_test
+    test_model_assessment_df = helpers.model_assessment(test_preds, y_test)
+    print(test_model_assessment_df)
+    test_model_assessment_df.to_csv(os.path.join(run_results_directory,'test_metrics_assessment.csv'))
 
     print('Model fairness metrics:')
-    model_fairness_df = helpers.fairness_metrics(fairness_df, preds)
-    print(model_fairness_df)
-    model_fairness_df.to_csv(os.path.join(run_results_directory,'fairness_assessment.csv'))
+    # Validation
+    val_model_fairness_df = helpers.fairness_metrics(val_fairness_df, val_preds)
+    print(val_model_fairness_df)
+    val_model_fairness_df.to_csv(os.path.join(run_results_directory,'val_fairness_assessment.csv'))
+    # Test
+    test_model_fairness_df = helpers.fairness_metrics(test_fairness_df, test_preds)
+    print(test_model_fairness_df)
+    test_model_fairness_df.to_csv(os.path.join(run_results_directory,'test_fairness_assessment.csv'))
+
+    demographic_parity_difference = test_model_fairness_df[test_model_fairness_df['Metric'] == \
+                                                           'Demographic Parity Difference']['Value'].max()
+    equal_opportunity_difference = test_model_fairness_df[test_model_fairness_df['Metric'] == \
+                                                           'Equal Opportunity Difference']['Value'].max()
+    disparate_impact = test_model_fairness_df[test_model_fairness_df['Metric'] == \
+                                                           'Disparate Impact']['Value'].max()
+    summarized_results = {
+        "adv_model_type": adv_model_type,
+        "lambda_tradeoff": lamdba_tradeoff,
+        "learning_rate": learning_rate,
+        "batch_size": batch_size,
+        "test_accuracy": test_model_assessment_df['Accuracy'].max(), 
+        "test_recall": test_model_assessment_df['Recall'].max(), 
+        "test_precision": test_model_assessment_df['Precision'].max(), 
+        "test_balanced_accuracy": test_model_assessment_df['Balanced Accuracy'].max(), 
+        "demographic_parity_difference": demographic_parity_difference,
+        "equal_opportunity_difference": equal_opportunity_difference,
+        "disparate_impact": disparate_impact
+    }
+
+    append_to_csv(os.path.join(RESULTS_DIRECTORY, OVERALL_RESULTS_CSV), summarized_results.values())
 
     # plot metrics
-    for metric in ['loss', 'accuracy', 'balanced_accuracy', 'main_model_loss', 'adv_model_loss']:
+    for metric in ['loss', 'accuracy', 'balanced_accuracy', 'main_model_loss', 'adv_model_loss', 
+                   'demographic_parity_difference', 'equal_opportunity_difference', 'disparate_impact']:
         plot_metric(x=model.results['epoch'], 
                     y=model.results[metric], 
                     x_label='epoch', 
