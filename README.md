@@ -1,5 +1,4 @@
 # CHD Adversarial NN
----
 ## An Adversarial Framework for Mitigating Gender Bias in Coronary Heart Disease Prediction.
 
 | Spec | Details |
